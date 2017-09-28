@@ -15,27 +15,21 @@ $panelTabs = [
     ],
     [
         'tab'   => "Dropdown",
-        'menu'  => [[
-            'tab'   => "Default 4",
-            'content' => "Default 4"
+        'menu'  => [
+            [
+                'tab'   => "Default 4",
+                'content' => "Default 4"
+            ],
+            [
+                'tab'   => "Default 5",
+                'content' => "Default 5"
+            ]
         ],
-        [
-            'tab'   => "Default 5",
-            'content' => "Default 5"
-        ]],
     ]
 ];
 
 echo $this->Html->navTabs($panelTabs);
-echo $this->Html->navTabs($panelTabs,[
-    'template' => ['<div class="panel with-nav-tabs panel-{{type}}"><div class="panel-heading">{{tabs}}</div><div class="panel-body">{{contents}}</div></div>',
-    [
-        'type' => "default"
-    ]]
-]);
-echo $this->Html->panelTabs($panelTabs,[
-    'type'=>"warning"
-]);
+echo $this->Html->panelTabs($panelTabs);
 /*
 
 
@@ -49,6 +43,7 @@ echo $this->Html->panelTabs($panelTabs,[
                 <li class="active"><a href="#tab1default" data-toggle="tab" aria-expanded="true">Default 1</a></li>
                 <li><a href="#tab2default" data-toggle="tab" aria-expanded="true">Default 2</a></li>
                 <li><a href="#tab3default" data-toggle="tab" aria-expanded="true">Default 3</a></li>
+
                 <li class="dropdown">
                     <a href="#" data-toggle="dropdown">Dropdown <span class="caret"></span></a>
                     <ul class="dropdown-menu" role="menu">
@@ -56,6 +51,7 @@ echo $this->Html->panelTabs($panelTabs,[
                         <li><a href="#tab5default" data-toggle="tab" aria-expanded="true">Default 5</a></li>
                     </ul>
                 </li>
+
             </ul>
     </div>
     <div class="panel-body">

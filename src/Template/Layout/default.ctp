@@ -11,12 +11,12 @@
 
     // bootstrap css
     echo $this->Html->css("https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/css/bootstrap.min.css");
-
+    // font awesome
+    echo $this->Html->css("https://maxcdn.bootstrapcdn.com/font-awesome/4.7.0/css/font-awesome.min.css");
     // panel-with-nav-tabs
     echo $this->Html->css("Quinen.panel-with-nav-tabs");
     // quinen css
     echo $this->Html->css("Quinen.quinen");
-
 
     // jquery js
     echo $this->Html->script('https://code.jquery.com/jquery-1.12.4.min.js', [
@@ -26,8 +26,6 @@
     // boostrap js
     echo $this->Html->script('https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/js/bootstrap.min.js');
 
-    
-
     ?>
     <?= $this->fetch('meta') ?>
     <?= $this->fetch('css') ?>
@@ -35,7 +33,7 @@
 </head>
 <body>
     <?= $this->Flash->render() ?>
-    <div class="container clearfix">
+    <div class="container-fluid clearfix">
         <?= $this->fetch('content') ?>
     </div>
     <footer>

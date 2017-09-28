@@ -6,11 +6,203 @@ use Cake\Utility\Hash;
 
 class HtmlHelper extends UseHelper
 {
+    protected function _completeMapping(array $maps = [],array $data = [])
+    {
+        if (empty($maps)) {
+            // on recupere chaque cle de data, on en fait le label + field
+            $maps = collection($data)->map(function ($d, $t) {
+                return [
+                    'label'     => $t,
+                    'field'     => $t,
+                    'format'    => (is_array($d)?[$this,"ul"]:false)
+                ];
+            })->toArray();
+        }
+    }
+
+    /*
+        transforme les données de type :
+            "toto"              => "toto"   ,[]
+            ["titi"]            => "titi"   ,[]
+            ["tata",['a'=>"b"]] => "tata"   ,['a'=>"b"]
+            [,['b'=>"c"]]       => null     ,['b'=> "c"]    
+    */
+    protected function _extractContentOptions($content, $contentDefault = null)
+    {
+        $contentOptions = [];
+        if (is_array($content)) {
+            $contentOptions = Hash::get($content, '1', []);
+            $content        = Hash::get($content, '0', $contentDefault);
+        }
+        return [$content,$contentOptions];
+    }
+
+    /*
+        format a $value
+        format can be a string, an array or a an array/array
+        example
+        "strtoupper" => function strtoupper
+        "::ul"
+        ["strtolower","ucfirst"] => apply 2 format 
+    */
+    protected function _formatValue($value, $format = false)
+    {
+        if ($format) {
+            $value = call_user_func($format, $value);
+        }
+        return $value;
+    }
+
     public function button($type = "default", $options = [])
     {
         $classes = ['btn', 'btn-' . $type];
 
         return $this->tag('button', $type, $this->injectClasses($classes, $options));
+    }
+
+    /*
+        definition list
+        <dl>
+            <dd></dd>
+            <dt></dt>
+        </dl>
+        cle = valeur
+        question = reponse
+        []
+    */
+    public function dl($data, $maps = [], array $options = [])
+    {
+        $options += [
+            'isHorizontal'  => false
+        ];
+
+        if ($options['isHorizontal']) {
+            $options = $this->injectClasses("dl-horizontal", $options);
+        }
+        unset($options['isHorizontal']);
+
+        // si map vide
+        $maps = $this->_completeMapping($maps);
+
+
+
+        // pour chaque ligne
+        $html = implode("\n", collection($maps)->map(function ($map, $k) use ($data) {
+            $map += [
+                'label'     => $k,
+                'field'     => $k,
+                'format'    => false,
+            ];
+
+            // label
+            list($label,$labelOptions) = $this->_extractContentOptions($map['label']);
+            unset($map['label']);
+
+            // field
+            list($field,$fieldOptions) = $this->_extractContentOptions($map['field']);
+            unset($map['field']);
+
+            // get value
+            $value = Hash::get($data, $field);
+            
+            // format value
+            if ($map['format']) {
+                $formattedValue = $this->_formatValue($value, $map['format']);
+            } else {
+                $formattedValue = $value;
+            }
+            unset($map['format']);
+
+            if (is_array($formattedValue)) {
+                $formattedValue = json_encode($formattedValue);
+            }
+            // formatage de la valeur
+            // linkification
+
+            // field contient le champ
+            return $this->tag('dt', $label, $labelOptions).$this->tag('dd', $formattedValue, $fieldOptions);
+        })->toArray());
+
+        return $this->tag('dl', $html, $options);
+    }
+    public function dropdown($dropdown, array $options = [])
+    {
+        $options += [
+            'tag'           => "div",
+            'tagContent'    => ["button",['class'=>["btn","btn-default"]]],
+        ];
+
+        list($tagContent,$tagContentOptions) = $this->_extractContentOptions($options['tagContent']);
+
+        $tagContentOptions += [
+            'data-toggle'   => "dropdown"
+        ];
+
+        // injectClasses
+        $tagContentOptions = $this->injectClasses("dropdown-toggle", $tagContentOptions);
+
+        $button = $this->tag(
+            $tagContent,
+            $dropdown['content']."&nbsp;".$this->tag('span', "", ['class'=>'caret']),
+            $tagContentOptions
+        );
+
+        $menu = collection($dropdown['menu'])->map(function ($menu) {
+            // gestion separateur
+            if ($menu == "/") {
+                return ["&nbsp;",['role'=>"separator",'class'=>"divider"]];
+            }
+
+            // gestion si texte simple
+            if (is_string($menu)) {
+                $menu = ['content'=>$menu];
+            }
+
+            // gestion si absence de lien
+            if (!isset($menu['link'])) {
+                $menu['link'] = "#";
+            }
+
+            $content    = Hash::get($menu, 'content', "&nbsp;");
+            $link       = Hash::get($menu, 'link');
+            unset($menu['content']);
+            unset($menu['link']);
+            return $this->link($content, $link, $menu);
+        })->toArray();
+
+        $menu = $this->ul($menu, [
+            'class' => "dropdown-menu"
+        ]);
+
+        return $this->tag($options['tag'], $button.$menu, ['class'=>"dropdown"]);
+    }
+
+    public function fa($name, array $options = [])
+    {
+        $options += [
+            'iconSet'       => "fa",
+            'isFixedWidth'  => true,
+            'size'          => 1,
+        ];
+
+        $classes = [];
+
+        // size, included in the custom css
+        if (in_array($options['size'], ['lg',2,3,4,5])) {
+            $size = "fa-".str_pad($options['size'], 2, "x");
+            $classes[] = $size;
+        }
+        unset($options['size']);
+
+        // fixed width
+        if ($options['isFixedWidth']) {
+            $classes[] = "fa-fw";
+        }
+        unset($options['isFixedWidth']);
+
+        $options = $this->injectClasses($classes, $options);
+
+        return $this->icon($name, $options);
     }
 
     public function icon($name, array $options = [])
@@ -24,16 +216,17 @@ class HtmlHelper extends UseHelper
         if ($options['size']>1) {
             $size = "gi-".$options['size']."x";
             $options = $this->injectClasses($size, $options);
-            unset($options['size']);
         }
-
-        $html = parent::icon($name, $options);
+        unset($options['size']);
 
         // generate a space after the icon automatically
+        $spaceAfter = "";
         if ($options['spaceAfter']) {
-            $html .= "&nbsp;";
+            $spaceAfter = "&nbsp;";
         }
-        return $html;
+        unset($options['spaceAfter']);
+
+        return parent::icon($name, $options).$spaceAfter;
     }
 
     /*
@@ -48,34 +241,48 @@ class HtmlHelper extends UseHelper
         ],
         ...
     ]
+    TODO : isActive sur menu
+    TODO : gestion de l'alignement
 
     */
     private function _navTabsTab($navTabs)
     {
         return implode("", collection($navTabs)->map(function ($navTab) {
             $navOptions = $navTab + [
-                //'role'  => "presentation",
-                
             ];
+            unset($navOptions['content']);
+
             // gestion si element active selectionné
             if (Hash::get($navTab, 'isActive')===true) {
                 $navOptions = $this->injectClasses('active', $navOptions);
             }
-
-            // ecriture de l'entete de onglet
-            $tab = $this->link(
-                $navTab['tab'],
-                '#'.$navOptions['id'],
-                ['data-toggle'=>"tab"]
-            );
-
-            unset($navOptions['id']);
-            unset($navOptions['tab']);
-            unset($navOptions['menu']);
-            unset($navOptions['content']);
             unset($navOptions['isActive']);
 
-            return $this->tag('li', $tab, $navOptions)."\n";
+            // ecriture de l'entete de onglet
+            if (isset($navTab['menu'])) {
+                $navTab['content'] = $navTab['tab'];
+                unset($navTab['tab']);
+
+                return $this->dropdown($navTab, [
+                    'tag'           => "li"
+                    ,'tagContent'   => ["a",['href'=>"#"]]
+                ]);
+            } elseif (isset($navTab['tab'])) {
+                $tab = $this->link(
+                    $navTab['tab'],
+                    '#'.$navOptions['id'],
+                    ['data-toggle'=>"tab"]
+                );
+
+                unset($navOptions['id']);
+                unset($navOptions['tab']);
+
+                return $this->tag('li', $tab, $navOptions)."\n";
+            } else {
+                // ni menu, ni tab ... title ?
+                list($title,$titleOptions) = $this->_extractContentOptions($navTab['title']);
+                return $this->tag('li', $title, $titleOptions);
+            }
         })->toArray());
     }
     /*
@@ -97,42 +304,62 @@ class HtmlHelper extends UseHelper
                 //'role'  => "tabpanel",
             ];
 
+            // on ignore les elements
+            unset($contentOptions['title']);
+            unset($contentOptions['tab']);
+            unset($contentOptions['menu']);
+
+            // on ajoute la classe
             $contentOptions = $this->injectClasses(['tab-pane'], $contentOptions);
 
             // gestion si element active selectionné
             if (Hash::get($navTab, 'isActive')===true) {
                 $contentOptions = $this->injectClasses('active', $contentOptions);
             }
-
-            // ecriture de l'entete de onglet
-            $content = Hash::get($navTab, 'content');
-
-            unset($contentOptions['tab']);
-            unset($contentOptions['menu']);
-            unset($contentOptions['content']);
             unset($contentOptions['isActive']);
+
+            // ecriture du contenu
+            $content = Hash::get($navTab, 'content', "&nbsp;");
+            unset($contentOptions['content']);
+
+            
+            
 
             return $this->tag('div', $content, $contentOptions);
         })->toArray());
     }
+
     public function navTabs($navTabs, array $options = [])
     {
         $templateDefault = "{{tabs}}{{contents}}";
         $options += [
-            'type'  => "tabs",
-            'template'   => $templateDefault,
+            'type'          => "tabs",
+            'template'      => $templateDefault,
+            'align'         => "left",
+            'isJustified'   => false
         ];
 
         $ulClasses = ["nav","nav-".$options['type']];
         unset($options['type']);
+
+        if ($options['isJustified']) {
+            $ulClasses += "nav-justified";
+        }
         
         $options = $this->injectClasses($ulClasses, $options);
 
-        // on gere les entete d'onglets
-        // on doit determiner l'onglet actif ..
-        // on parcours donc le tableau en esperant trouver un actif, si aucun on selectionne le premier
+        // gestion onglet actif
+        // si aucun onglet actif
         if (is_null(collection($navTabs)->firstMatch(['isActive' => true]))) {
-            $navTabs[0]['isActive'] = true;
+            //on prends le premier ou tab exist
+            $activeAdded = false;
+            $navTabs = collection($navTabs)->map(function ($navTab) use (&$activeAdded) {
+                if (!$activeAdded && isset($navTab['tab'])) {
+                    $activeAdded = true;
+                    return Hash::insert($navTab, 'isActive', true);
+                }
+                return $navTab;
+            })->toArray();
         }
 
         // injection d'id si necessaire
@@ -143,34 +370,70 @@ class HtmlHelper extends UseHelper
         })->toArray();
 
         // gestion du template
-        $templateVars = [];
-        if (is_array($options['template'])) {
-            $templateVars        = Hash::get($options, 'template.1', []);
-            $options['template'] = Hash::get($options, 'template.0', $templateDefault);
-        }
-        $this->templater()->add(['navtabs'=>$options['template']]);
+        list($template,$templateVars) = $this->_extractContentOptions($options['template'], $templateDefault);
         unset($options['template']);
+        $this->templater()->add(['navtabs'=>$template]);
 
-        $html = $this->templater()->format('navtabs', [
+        return $this->templater()->format('navtabs', [
             'tabs'      => $this->tag('ul', $this->_navTabsTab($navTabs), $options),
             'contents'  => $this->div('tab-content', $this->_navTabsContent($navTabs))
         ]+$templateVars);
-        return  $html;
     }
 
-    public function panelTabs($panelTabs,array $options = []){
+    public function panelTabs($panelTabs, array $options = [])
+    {
         $options += [
             'type'=>"default"
         ];
         
-        return $this->navTabs($panelTabs,[
+        // gestion du title
+        $panelTabs = collection($panelTabs)->map(function ($panelTab) {
+            if (isset($panelTab['title']) && is_string($panelTab['title'])) {
+                $panelTab['title'] = [
+                    $panelTab['title'],
+                    ['class'=>"panel-title"]
+                ];
+            }
+            return $panelTab;
+        })->toArray();
+
+        return $this->navTabs($panelTabs, [
             'template' => [
                 '<div class="panel with-nav-tabs panel-{{type}}">'
-                .'<div class="panel-heading">{{tabs}}</div>'
-                .'<div class="panel-body">{{contents}}</div>'
+                    .'<div class="panel-heading">{{tabs}}</div>'
+                    .'<div class="panel-body">{{contents}}</div>'
                 .'</div>',
                 $options
             ]
         ]);
+    }
+
+    public function pre($content)
+    {
+        $html = "";
+        if (is_array($content)) {
+            $html = var_export($content, true);
+        } else {
+            $html = $content;
+        }
+        return $this->tag('pre', $content);
+    }
+
+    /*
+        genere une table = thead(tr+th) + tbody(tr+td) + tfoot
+    */
+    public function table($datas, array $maps = [], array $options = [])
+    {
+    }
+
+    public function ul($lis, array $options = [])
+    {
+
+        $html = implode("", collection($lis)->map(function ($li) {
+            list($li,$liOptions) = $this->_extractContentOptions($li);
+            return $this->tag('li', $li, $liOptions);
+        })->toArray());
+
+        return $this->tag('ul', $html, $options);
     }
 }
