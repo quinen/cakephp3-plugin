@@ -36,11 +36,11 @@ $entetes = collection($c1->first())->append($c2->first())->toList();
 // ajout des colonnes vides
 $nb = 5;
 // ->take($nb)
-$list1  = $c1->skip(1)->map(function($line){
-    $range = array_map(function($col){
+$list1  = $c1->skip(1)->map(function ($line) {
+    $range = array_map(function ($col) {
         return null;
-    },range(24,24+17));
-    return $line + array_combine(range(24,24+17),$range); 
+    }, range(24, 24+17));
+    return $line + array_combine(range(24, 24+17), $range);
 });
 $list2  = $c2->skip(1)->map(function ($line) {
     // re-indexe les colonnes
@@ -54,6 +54,7 @@ $list2  = $c2->skip(1)->map(function ($line) {
 $array2 = [];
 
 $all = collection([$entetes])->append($list1)->append($list2)->toList();
+$some = collection($all)->take(10)->toArray();
 
 /*
 echo $this->Html->div('row',
@@ -66,12 +67,12 @@ echo $this->Html->div('row',
 //*
 //echo count($all);
 
-//echo $this->Html->table($all);
-///*
-//echo //$this->Html->pre(
+echo $this->Html->table($some,[],[
+    'title' => "toto"
+]);
 
-//);
-//*/
+/*
+    // ecriture du fichier texte dans le dossier tmp
 
 $fcAll = new File(TMP."fusion.txt",true);
 $fcAll->write(    implode(
@@ -80,3 +81,4 @@ $fcAll->write(    implode(
         return implode("\t",$line);
     })->toArray()
 ));
+*/

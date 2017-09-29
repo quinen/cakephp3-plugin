@@ -6,7 +6,7 @@ use Cake\Utility\Hash;
 
 class HtmlHelper extends UseHelper
 {
-    protected function _completeMapping(array $maps = [],array $data = [])
+    protected function _completeMapping(array $maps = [], array $data = [])
     {
         if (empty($maps)) {
             // on recupere chaque cle de data, on en fait le label + field
@@ -18,6 +18,7 @@ class HtmlHelper extends UseHelper
                 ];
             })->toArray();
         }
+        return $maps;
     }
 
     /*
@@ -53,6 +54,48 @@ class HtmlHelper extends UseHelper
         return $value;
     }
 
+    protected function _formatField($data, $map)
+    {
+
+          // field
+          list($field,$valueOptions) = $this->_extractContentOptions($map['field']);
+
+          // get value
+          $value = Hash::get($data, $field);
+          
+          // format value
+        if ($map['format']) {
+            $formattedValue = $this->_formatValue($value, $map['format']);
+        } else {
+            $formattedValue = $value;
+        }
+
+        if (is_array($formattedValue)) {
+            $formattedValue = json_encode($formattedValue);
+        }
+          // formatage de la valeur
+          // linkification
+
+          return [$formattedValue,$valueOptions];
+    }
+
+    public function _injectTableClasses($classes, $options)
+    {
+        // convert isBordered by table-bordered class
+        $tableClasses = collection($classes)->reduce(function ($reducer, $class) use (&$options) {
+            $optionName = "is".ucfirst($class);
+            if ($options[$optionName]) {
+                $reducer[] = "table-".$class;
+            }
+            unset($options[$optionName]);
+            return $reducer;
+        }, ['table']);
+
+        // inject class in options
+        return $this->injectClasses($tableClasses, $options);
+        ;
+    }
+
     public function button($type = "default", $options = [])
     {
         $classes = ['btn', 'btn-' . $type];
@@ -81,10 +124,8 @@ class HtmlHelper extends UseHelper
         }
         unset($options['isHorizontal']);
 
-        // si map vide
-        $maps = $this->_completeMapping($maps);
-
-
+        // si map vide on la complete avec les champs label,field,format
+        $maps = $this->_completeMapping($maps, $data);
 
         // pour chaque ligne
         $html = implode("\n", collection($maps)->map(function ($map, $k) use ($data) {
@@ -98,29 +139,12 @@ class HtmlHelper extends UseHelper
             list($label,$labelOptions) = $this->_extractContentOptions($map['label']);
             unset($map['label']);
 
-            // field
-            list($field,$fieldOptions) = $this->_extractContentOptions($map['field']);
+            list($value,$valueOptions) = $this->_formatField($data, $map);
             unset($map['field']);
-
-            // get value
-            $value = Hash::get($data, $field);
-            
-            // format value
-            if ($map['format']) {
-                $formattedValue = $this->_formatValue($value, $map['format']);
-            } else {
-                $formattedValue = $value;
-            }
             unset($map['format']);
 
-            if (is_array($formattedValue)) {
-                $formattedValue = json_encode($formattedValue);
-            }
-            // formatage de la valeur
-            // linkification
-
             // field contient le champ
-            return $this->tag('dt', $label, $labelOptions).$this->tag('dd', $formattedValue, $fieldOptions);
+            return $this->tag('dt', $label, $labelOptions).$this->tag('dd', $value, $valueOptions);
         })->toArray());
 
         return $this->tag('dl', $html, $options);
@@ -380,6 +404,54 @@ class HtmlHelper extends UseHelper
         ]+$templateVars);
     }
 
+    public function panel($content = "", array $options = [])
+    {
+        $options += [
+            'title'     => false,
+            'type'      => "default",
+            'foot'      => false,
+            'table'     => false,
+            'list'      => false,
+            'content'   => false
+        ];
+
+        $head = "";
+        if ($options['title']) {
+            $head .= $options['title'];
+        }
+        unset($options['title']);
+
+        if (!empty($head)) {
+            $head = $this->div('panel-heading', $head);
+        }
+
+        $body = "";
+        if($content){
+            $body = $this->div('panel-body', $content);
+        }
+
+        $foot = "";
+        if (!empty($foot)) {
+            $foot = $this->div('panel-footer', $foot);
+        }
+
+        $content = "";
+        if ($options['table']) {
+            $content .= call_user_func_array([$this,"table"], $options['table']);
+        }
+
+
+        if ($options['list']) {
+            $content .= call_user_func_array([$this,"listGroup"], $options['list']);
+        }
+
+        if ($options['content']) {
+            $content .= $options['content'];
+        }
+
+        return $this->div('panel panel-'.$options['type'], $head.$body.$foot.$content);
+    }
+
     public function panelTabs($panelTabs, array $options = [])
     {
         $options += [
@@ -424,6 +496,47 @@ class HtmlHelper extends UseHelper
     */
     public function table($datas, array $maps = [], array $options = [])
     {
+        $options += [
+            'isBordered'    => true,
+            'isCondensed'   => true,
+            'isHover'       => true,
+            'isStriped'     => true,
+            'title'         => false
+        ];
+
+        $options = $this->_injectTableClasses(['bordered','condensed','hover','striped'], $options);
+
+        // si map vide on la complete avec les champs label,field,format
+        $maps = $this->_completeMapping($maps, $datas[0]);
+
+        // on genere l'entete
+        $entete = $this->tag('tr', implode("\n\t\t", collection($maps)->map(function ($map) {
+            list($label,$labelOptions) = $this->_extractContentOptions($map['label']);
+            return $this->tag('th', $label, $labelOptions);
+        })->toArray()));
+
+        $thead = "\n\t".$this->tag('thead', $entete);
+
+        // on genere les données
+        // pour chaque ligne
+        $lines = collection($datas)->map(function ($data) use ($maps) {
+            // pour chaque colonne
+            $columns = collection($maps)->map(function ($map) use ($data) {
+                // label,field,format
+                list($value,$valueOptions) = $this->_formatField($data, $map);
+                return $this->tag('td', $value, $valueOptions);
+            })->toArray();
+            return "\n\t".$this->tag('tr', implode("\n\t\t", $columns));
+        })->toArray();
+
+        $tbody = "\n\t".$this->tag('tbody', implode("\n", $lines));
+        $tfoot = "";
+        $table = "\n".$this->tag('table', $thead.$tbody.$tfoot, $options);
+
+        return $this->panel(false,[
+            'content'   => $table,
+            'title'     => $options['title']
+        ]);
     }
 
     public function ul($lis, array $options = [])
