@@ -118,4 +118,3 @@ $questions = [
 
 $dls = collection($questions)->combine('?','!')->toArray();
 echo $this->Html->dl($dls);
-pr($dls);

@@ -9,7 +9,8 @@ $navTabs = collection($files)->map(function ($file) {
         $name = str_replace(".ctp", "", $file);
         return [
             'tab'       => ucwords($name),
-            'content'   => $this->element($this->name."/".$name)
+            'content'   => $this->element($this->name."/".$name),
+            'isActive'  => ($name=="nav_bar"?true:false)
         ];
 })->toArray();
 

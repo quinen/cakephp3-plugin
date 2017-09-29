@@ -253,6 +253,69 @@ class HtmlHelper extends UseHelper
         return parent::icon($name, $options).$spaceAfter;
     }
 
+
+    public function navbar($navbars, $options)
+    {
+        $options += [
+            'type' => "default" // default, inverse
+        ];
+
+        // classes
+        $options = $this->injectClasses(['navbar','navbar-'.$options['type']], $options);
+        unset($options['type']);
+
+        // header
+        // on filtre les elements ayant la key brand
+        $navAll = collection($navbars)->buffered();
+
+        $navHeader = $navAll->filter(function ($nav) {
+            return isset($nav['brand']);
+        })->reduce(function ($reducer, $nav) {
+            list($brand,$brandOptions) = $this->_extractContentOptions($nav['brand']);
+            $brandOptions = $this->injectClasses("navbar-brand", $brandOptions);
+            if (isset($nav['link'])) {
+                $reducer .= $this->link($brand, $nav['link'], $brandOptions);
+            } else {
+                $reducer .= $this->tag('span', $brand, $brandOptions);
+            }
+            return $reducer;
+        }, "");
+
+        if (!empty($navHeader)) {
+            $navHeader = $this->div('navbar-header', $navHeader);
+        }
+
+        // nav
+        $nav = $navAll->reject(function ($nav) {
+            return isset($nav['brand']);
+        })->map(function ($nav) {
+
+            list($li,$liOptions) = $this->_extractContentOptions($nav['content']);
+
+            // isActive
+            if (Hash::get($nav, 'isActive')) {
+                $liOptions = $this->_injectClasses("active", $liOptions);
+            }
+
+            // content, link, isActive -> <a>
+            if (isset($nav['link'])) {
+                $content = [$this->link($li, $nav['link']),$liOptions];
+            } else {
+                $content = [$this->tag('p',$li,['class'=>'navbar-text']),$liOptions];
+            }
+            return $content;
+        });
+        
+        if (!empty($nav)) {
+            $nav = $this->ul($nav, [
+                'class'=> ['nav','navbar-nav']
+            ]);
+        }
+        // nav-right
+
+
+        return $this->tag('nav', $navHeader.$nav, $options);
+    }
     /*
     gestion d'une barre de tabulations
 
@@ -426,7 +489,7 @@ class HtmlHelper extends UseHelper
         }
 
         $body = "";
-        if($content){
+        if ($content) {
             $body = $this->div('panel-body', $content);
         }
 
@@ -533,7 +596,7 @@ class HtmlHelper extends UseHelper
         $tfoot = "";
         $table = "\n".$this->tag('table', $thead.$tbody.$tfoot, $options);
 
-        return $this->panel(false,[
+        return $this->panel(false, [
             'content'   => $table,
             'title'     => $options['title']
         ]);
