@@ -10,9 +10,15 @@ $navbar = [
         'link'      => "#"
     ],
     [
+      'content'   => "Active link",
+      'link'      => "#",
+      'isActive'  => true
+    ],
+    [
         'content'   => "Text",
     ]
 ];
+debug($navbar);
 echo $this->Html->navbar($navbar, ['type'=>"inverse"]);
 ?>
 

@@ -7,12 +7,20 @@ $dropdown = [
             'content' => "Action"
         ]
         ,"Another action"
-        ,'something else here'
+        ,[
+          'content' => "something else here",
+          'link'    => [
+            'controller'  => "Pages",
+            'action'      => "display",
+            'plugin'      => "Quinen",
+            'home'
+          ]
+        ]
         ,"/"
         ,"Separated link"
     ]
 ];
-
+debug($dropdown);
 echo $this->Html->dropdown($dropdown);
 
 ?>

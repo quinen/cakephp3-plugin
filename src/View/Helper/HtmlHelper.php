@@ -149,6 +149,9 @@ class HtmlHelper extends UseHelper
 
         return $this->tag('dl', $html, $options);
     }
+    /*
+        dropdown implementable dans des menus et boutons
+    */
     public function dropdown($dropdown, array $options = [])
     {
         $options += [
@@ -246,7 +249,7 @@ class HtmlHelper extends UseHelper
         // generate a space after the icon automatically
         $spaceAfter = "";
         if ($options['spaceAfter']) {
-            $spaceAfter = "&nbsp;";
+            $spaceAfter = " ";
         }
         unset($options['spaceAfter']);
 
@@ -294,7 +297,7 @@ class HtmlHelper extends UseHelper
 
             // isActive
             if (Hash::get($nav, 'isActive')) {
-                $liOptions = $this->_injectClasses("active", $liOptions);
+                $liOptions = $this->injectClasses("active", $liOptions);
             }
 
             // content, link, isActive -> <a>

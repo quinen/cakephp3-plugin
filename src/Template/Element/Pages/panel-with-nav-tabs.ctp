@@ -27,8 +27,8 @@ $panelTabs = [
         ],
     ]
 ];
-
-echo $this->Html->navTabs($panelTabs);
+debug($panelTabs);
+//echo $this->Html->navTabs($panelTabs);
 echo $this->Html->panelTabs($panelTabs);
 /*
 
