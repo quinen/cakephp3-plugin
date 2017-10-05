@@ -10,7 +10,7 @@ $navTabs = collection($files)->map(function ($file) {
         return [
             'tab'       => ucwords($name),
             'content'   => $this->element($this->name."/".$name),
-            'isActive'  => ($name=="nav_bar"?true:false)
+            'isActive'  => ($name=="icons"?true:false)
         ];
 })->toArray();
 

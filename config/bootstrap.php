@@ -1,5 +1,7 @@
 <?php
 
+require_once(ROOT.DS."plugins".DS."Quinen".DS."src".DS."functions.php");
+
 use Cake\Core\Configure;
 
 Configure::write("Datasources.default",
@@ -45,3 +47,4 @@ Configure::write("Datasources.default",
     'url' => env('DATABASE_URL', null),
 ]
 );
+

@@ -8,7 +8,10 @@ class HtmlHelper extends UseHelper
 {
     protected function _completeMapping(array $maps = [], array $data = [])
     {
+        // generation d'une map par defaut
         if (empty($maps)) {
+            // en cas de structure
+            $data = Hash::flatten($data);
             // on recupere chaque cle de data, on en fait le label + field
             $maps = collection($data)->map(function ($d, $t) {
                 return [
@@ -18,6 +21,21 @@ class HtmlHelper extends UseHelper
                 ];
             })->toArray();
         }
+        // on s'assure que les champs obligatoires sont bien present
+        $maps = collection($maps)->map(function ($map, $index) {
+            if (is_string($map)) {
+                $map = [
+                    'label'     => $map,
+                    'field'     => $map,
+                ];
+            }
+            return $map += [
+                'label'     => $index,
+                'field'     => $index,
+                'format'    => false
+            ];
+        })->toArray();
+
         return $maps;
     }
 
@@ -56,12 +74,11 @@ class HtmlHelper extends UseHelper
 
     protected function _formatField($data, $map)
     {
+        // field
+        list($field,$valueOptions) = $this->_extractContentOptions($map['field']);
 
-          // field
-          list($field,$valueOptions) = $this->_extractContentOptions($map['field']);
-
-          // get value
-          $value = Hash::get($data, $field);
+        // get value
+        $value = Hash::get($data, $field);
           
           // format value
         if ($map['format']) {
@@ -84,7 +101,7 @@ class HtmlHelper extends UseHelper
         // convert isBordered by table-bordered class
         $tableClasses = collection($classes)->reduce(function ($reducer, $class) use (&$options) {
             $optionName = "is".ucfirst($class);
-            if ($options[$optionName]) {
+            if (isset($options[$optionName]) && $options[$optionName]) {
                 $reducer[] = "table-".$class;
             }
             unset($options[$optionName]);
@@ -93,7 +110,6 @@ class HtmlHelper extends UseHelper
 
         // inject class in options
         return $this->injectClasses($tableClasses, $options);
-        ;
     }
 
     public function button($type = "default", $options = [])
@@ -129,12 +145,6 @@ class HtmlHelper extends UseHelper
 
         // pour chaque ligne
         $html = implode("\n", collection($maps)->map(function ($map, $k) use ($data) {
-            $map += [
-                'label'     => $k,
-                'field'     => $k,
-                'format'    => false,
-            ];
-
             // label
             list($label,$labelOptions) = $this->_extractContentOptions($map['label']);
             unset($map['label']);
@@ -201,7 +211,16 @@ class HtmlHelper extends UseHelper
             'class' => "dropdown-menu"
         ]);
 
-        return $this->tag($options['tag'], $button.$menu, ['class'=>"dropdown"]);
+        if ($options['tag']) {
+            return $this->tag($options['tag'], $button.$menu, ['class'=>"dropdown"]);
+        } else {
+            return $button.$menu;
+        }
+    }
+
+    public function icon($name, array $options = [])
+    {
+        return $this->fa($name, $options);
     }
 
     public function fa($name, array $options = [])
@@ -229,10 +248,10 @@ class HtmlHelper extends UseHelper
 
         $options = $this->injectClasses($classes, $options);
 
-        return $this->icon($name, $options);
+        return $this->gi($name, $options);
     }
 
-    public function icon($name, array $options = [])
+    public function gi($name, array $options = [])
     {
         $options += [
             'size'      => 1,
@@ -267,10 +286,10 @@ class HtmlHelper extends UseHelper
         $options = $this->injectClasses(['navbar','navbar-'.$options['type']], $options);
         unset($options['type']);
 
-        // header
-        // on filtre les elements ayant la key brand
         $navAll = collection($navbars)->buffered();
 
+        // header
+        // on filtre les elements ayant la key brand
         $navHeader = $navAll->filter(function ($nav) {
             return isset($nav['brand']);
         })->reduce(function ($reducer, $nav) {
@@ -292,20 +311,33 @@ class HtmlHelper extends UseHelper
         $nav = $navAll->reject(function ($nav) {
             return isset($nav['brand']);
         })->map(function ($nav) {
-
             list($li,$liOptions) = $this->_extractContentOptions($nav['content']);
 
-            // isActive
-            if (Hash::get($nav, 'isActive')) {
-                $liOptions = $this->injectClasses("active", $liOptions);
+            // est ce qu'on as un sous menu ?
+            if (isset($nav['menu'])) {
+                $liOptions = $this->injectClasses("dropdown", $liOptions);
+                $dropdown = $this->dropdown([
+                    'content'   => $li
+                    ,'menu'     => $nav['menu']
+                ], [
+                    'tag'           => false,
+                    'tagContent'    => ["a",['href'=>"#"]]
+                ]);
+                $content = [$dropdown,$liOptions];
+            } else {
+                // isActive
+                if (Hash::get($nav, 'isActive')) {
+                    $liOptions = $this->injectClasses("active", $liOptions);
+                }
+
+                // content, link, isActive -> <a>
+                if (isset($nav['link'])) {
+                    $content = [$this->link($li, $nav['link']),$liOptions];
+                } else {
+                    $content = [$this->tag('p', $li, ['class'=>'navbar-text']),$liOptions];
+                }
             }
 
-            // content, link, isActive -> <a>
-            if (isset($nav['link'])) {
-                $content = [$this->link($li, $nav['link']),$liOptions];
-            } else {
-                $content = [$this->tag('p',$li,['class'=>'navbar-text']),$liOptions];
-            }
             return $content;
         });
         
@@ -537,7 +569,7 @@ class HtmlHelper extends UseHelper
 
         return $this->navTabs($panelTabs, [
             'template' => [
-                '<div class="panel with-nav-tabs panel-{{type}}">'
+                '<div class="panel panel-{{type}} with-nav-tabs">'
                     .'<div class="panel-heading">{{tabs}}</div>'
                     .'<div class="panel-body">{{contents}}</div>'
                 .'</div>',
@@ -554,29 +586,58 @@ class HtmlHelper extends UseHelper
         } else {
             $html = $content;
         }
-        return $this->tag('pre', $content);
+        return $this->tag('pre', $html);
+    }
+
+    /*
+        genere une row avec nbCols
+    */
+    public function row($cols, array $options = [])
+    {
+        $nbCols =  count($cols);
+        $options += [
+            'width' => floor(12/$nbCols)
+        ];
+
+        // generation de taille de colonnes
+        if (is_array($options['width'])) {
+            $widths = $options['width'];
+        } else {
+            $widths = array_fill(0, $nbCols, $options['width']);
+        }
+
+        //debug($widths);
+
+        $html = collection($cols)->reduce(function ($reducer, $col, $index) use ($widths) {
+            return $reducer.$this->div('col col-md-'.$widths[$index], $col);
+        }, "");
+
+        return $this->div('row', $html);
     }
 
     /*
         genere une table = thead(tr+th) + tbody(tr+td) + tfoot
     */
-    public function table($datas, array $maps = [], array $options = [])
+    public function table(array $datas, array $maps = [], array $options = [])
     {
         $options += [
             'isBordered'    => true,
             'isCondensed'   => true,
+            //'isXcondensed'  => true,
             'isHover'       => true,
             'isStriped'     => true,
-            'title'         => false
+            'title'         => false,
+            'icon'          => false,
+            'type'          => "default"
         ];
 
-        $options = $this->_injectTableClasses(['bordered','condensed','hover','striped'], $options);
+        $options = $this->_injectTableClasses(['bordered','condensed','xcondensed','hover','striped'], $options);
 
         // si map vide on la complete avec les champs label,field,format
         $maps = $this->_completeMapping($maps, $datas[0]);
 
         // on genere l'entete
-        $entete = $this->tag('tr', implode("\n\t\t", collection($maps)->map(function ($map) {
+        $entete = $this->tag('tr', implode("\n\t\t", collection($maps)->map(function ($map, $index) {
             list($label,$labelOptions) = $this->_extractContentOptions($map['label']);
             return $this->tag('th', $label, $labelOptions);
         })->toArray()));
@@ -588,6 +649,7 @@ class HtmlHelper extends UseHelper
         $lines = collection($datas)->map(function ($data) use ($maps) {
             // pour chaque colonne
             $columns = collection($maps)->map(function ($map) use ($data) {
+//debug($map);
                 // label,field,format
                 list($value,$valueOptions) = $this->_formatField($data, $map);
                 return $this->tag('td', $value, $valueOptions);
@@ -601,15 +663,19 @@ class HtmlHelper extends UseHelper
 
         return $this->panel(false, [
             'content'   => $table,
-            'title'     => $options['title']
+            'title'     => $options['title'],
+            'type'      => $options['type']
         ]);
     }
 
     public function ul($lis, array $options = [])
     {
+        if (is_null($lis)) {
+            return $lis;
+        }
 
-        $html = implode("", collection($lis)->map(function ($li) {
-            list($li,$liOptions) = $this->_extractContentOptions($li);
+        $html = implode("", collection($lis)->map(function ($liOne) {
+            list($li,$liOptions) = $this->_extractContentOptions($liOne);
             return $this->tag('li', $li, $liOptions);
         })->toArray());
 

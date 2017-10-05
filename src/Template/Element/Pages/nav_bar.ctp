@@ -7,22 +7,43 @@ $navbar = [
     ],
     [
         'content'   => "Link",
-        'link'      => "#"
+        'link'      => "#",
+        'isActive'  => true
     ],
     [
-      'content'   => "Active link",
+      'content'   => "Link",
       'link'      => "#",
-      'isActive'  => true
+      
     ],
     [
         'content'   => "Text",
+    ],
+    [
+      'content' => "Dropdown",
+      'menu'  => [
+          [
+              'content' => "Action"
+          ]
+          ,"Another action"
+          ,[
+            'content' => "something else here",
+            'link'    => [
+              'controller'  => "Pages",
+              'action'      => "display",
+              'plugin'      => "Quinen",
+              'home'
+            ]
+          ]
+          ,"/"
+          ,"Separated link"
+      ]
     ]
 ];
 debug($navbar);
 echo $this->Html->navbar($navbar, ['type'=>"inverse"]);
 ?>
 
-<nav class="navbar navbar-default">
+<nav class="navbar navbar-inverse">
   <div class="container-fluid">
     <!-- Brand and toggle get grouped for better mobile display -->
     <div class="navbar-header">
@@ -40,6 +61,7 @@ echo $this->Html->navbar($navbar, ['type'=>"inverse"]);
       <ul class="nav navbar-nav">
         <li class="active"><a href="#">Link <span class="sr-only">(current)</span></a></li>
         <li><a href="#">Link</a></li>
+        <li><p class="navbar-text">Text</p></li>
         <li class="dropdown">
           <a href="#" class="dropdown-toggle" data-toggle="dropdown" role="button" aria-haspopup="true" aria-expanded="false">Dropdown <span class="caret"></span></a>
           <ul class="dropdown-menu">
