@@ -24,6 +24,10 @@ $intersect = array_intersect($fas, $gis);
 $fas = array_diff($fas, $intersect);
 $gis = array_diff($gis, $intersect);
 
+debug($fas);
+$brands = "amazon,android,angellist,bandcamp,behance,behance-square,bitbucket,bitbucket-square,".
+    "buysellads,chrome,cny,codepen,codiepie,connectdevelop,contao,dedent,delicious,".
+    "deviantart,digg,dropbox,drupal,edge,eercast,envira,expeditedssl,facebook,facebook-f,facebook-official,facebook-square"
 
 $htmlFa = implode("\n", collection($fas)->map(function ($v) {
     return $this->Html->fa($v, ['size'=>2,'title'=>$v,'spaceAfter'=>true]);
