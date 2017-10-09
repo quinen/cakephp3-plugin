@@ -504,6 +504,10 @@ class HtmlHelper extends UseHelper
 
     public function panel($content = "", array $options = [])
     {
+        if(is_array($content)){
+            $content = Hash::get($content,'content');
+            unset($content['content']);
+        }
         $options += [
             'title'     => false,
             'type'      => "default",
