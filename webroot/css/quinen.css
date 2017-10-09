@@ -11,3 +11,8 @@
 .table-xcondensed > tfoot > tr > td {
   padding: 1px;
 }
+
+div[class^="col"]{
+  padding-left:10px; 
+  padding-right:10px;
+}

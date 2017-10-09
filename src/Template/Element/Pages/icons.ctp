@@ -37,7 +37,15 @@ $brands = "amazon,android,angellist,bandcamp,behance,behance-square,bitbucket,bi
     "ils,imdb,inr,instagram,internet-explorer,ioxhost,joomla,jsfiddle,lastfm,lastfm-square,".
     "leanpub,linkedin,linkedin-square,linode,linux,maxcdn,meanpath,medium,meetup,mixcloud,".
     "modx,odnoklassniki,odnoklassniki-square,opencart,openid,opera,optin-monster,paypal,".
-    "pied-piper,pied-piper-alt,pied-piper-pp,pinterest,pinterest-p,pinterest-square,product-hunt,qq,quora,ra,ravelry,rebel,reddit,reddit-alien,reddit-square"
+    "pied-piper,pied-piper-alt,pied-piper-pp,pinterest,pinterest-p,pinterest-square,".
+    "product-hunt,qq,quora,ra,ravelry,rebel,reddit,reddit-alien,reddit-square,renren,".
+    "resistance,safari,scribd,sellsy,shekel,sheqel,shirtsinbulk,simplybuilt,skyatlas,".
+    "skype,slack,slideshare,snapchat,snapchat-ghost,snapchat-square,soundcloud,spotify,".
+    "stack-overflow,steam,steam-square,strikethrough,stumbleupon,stumbleupon-circle,".
+    "tencent-weibo,themeisle,trello,tripadvisor,tumblr,tumblr-square,twitch,twitter,".
+    "twitter-square,viadeo,viadeo-square,vimeo,vimeo-square,vine,vk,weibo,whatsapp,".
+    "windows,wordpress,wpbeginner,wpexplorer,xing,xing-square,yahoo,yelp,youtube,youtube-play,".
+    "youtube-square"
 ;
 $brands = explode(',', $brands);
 $fas = array_diff($fas, $brands);
@@ -52,6 +60,8 @@ $alias = [
     'ellipsis-h'            => "option-horizontal",
     'ellipsis-v'            => "option-vertical",
     'exclamation-triangle'  => "alert",
+    'picture-o'             => "picture",
+    'terminal'              => "console",
     'warning'               => "alert",
 ];
 $fas = array_diff($fas, array_keys($alias));
