@@ -1,6 +1,9 @@
 <?php
 use Migrations\AbstractMigration;
-
+/*
+    generated with the command line :
+    bin/cake bake migration CreateQnnUsrUsers usr_id:integer:primary usr_code:string:unique:IDX_USR_CODE usr_login:string usr_password:string usr_dt_created:datetime usr_dt_updated:datetime -p Quinen
+*/
 class CreateQnnUsrUsers extends AbstractMigration
 {
 
@@ -22,17 +25,22 @@ class CreateQnnUsrUsers extends AbstractMigration
             'limit' => 11,
             'null' => false,
         ]);
+        $table->addColumn('usr_code', 'string', [
+            'default' => null,
+            'limit' => 255,
+            'null' => false,
+        ]);
+        $table->addColumn('usr_grp_id', 'integer', [
+            'default' => null,
+            'limit' => 11,
+            'null' => false,
+        ]);
         $table->addColumn('usr_login', 'string', [
             'default' => null,
             'limit' => 255,
             'null' => false,
         ]);
         $table->addColumn('usr_password', 'string', [
-            'default' => null,
-            'limit' => 255,
-            'null' => false,
-        ]);
-        $table->addColumn('usr_email', 'string', [
             'default' => null,
             'limit' => 255,
             'null' => false,
@@ -46,9 +54,9 @@ class CreateQnnUsrUsers extends AbstractMigration
             'null' => false,
         ]);
         $table->addIndex([
-            'usr_login',
+            'usr_code',
         ], [
-            'name' => 'IDX',
+            'name' => 'IDX_USR_CODE',
             'unique' => true,
         ]);
         $table->addPrimaryKey([
