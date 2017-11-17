@@ -11,24 +11,10 @@ class HtmlHelper extends UseHelper
     use IconTrait;
     use TableTrait;
 
-/*
-   
-
-    
-
-
-
+    /*
     public function icon($name, array $options = [])
     {
         return $this->fa($name, $options);
     }
-
-
-
-
-    
-
-
-
     */
 }
