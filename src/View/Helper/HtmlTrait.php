@@ -6,8 +6,6 @@ use Cake\Utility\Hash;
 
 trait HtmlTrait
 {
-
-
     // format a $value
     // format can be a string, an array or a an array/array
     // example

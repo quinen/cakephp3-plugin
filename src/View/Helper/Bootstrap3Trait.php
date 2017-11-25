@@ -138,12 +138,18 @@ trait Bootstrap3Trait
     public function navbar($navbars, $options)
     {
         $options += [
-            'type' => "default" // default, inverse
+            'type' => "default", // default, inverse
+            'isStaticTop' => false
         ];
 
         // classes
         $options = $this->injectClasses(['navbar','navbar-'.$options['type']], $options);
         unset($options['type']);
+
+        if($options['isStaticTop']) {
+            $options = $this->injectClasses(['navbar-static-top'], $options);
+        }
+        unset($options['isStaticTop']);
 
         $navAll = collection($navbars)->buffered();
 
@@ -154,6 +160,14 @@ trait Bootstrap3Trait
         })->reduce(function ($reducer, $nav) {
             list($brand,$brandOptions) = $this->_extractContentOptions($nav['brand']);
             $brandOptions = $this->injectClasses("navbar-brand", $brandOptions);
+
+            // icon
+            if(isset($nav['icon'])){
+                $brand = $this->icon($nav['icon']).$brand;
+                $brandOptions['escape'] = false;
+            }
+
+            // link
             if (isset($nav['link'])) {
                 $reducer .= $this->link($brand, $nav['link'], $brandOptions);
             } else {
@@ -166,11 +180,18 @@ trait Bootstrap3Trait
             $navHeader = $this->div('navbar-header', $navHeader);
         }
 
-        // nav
+        // nav sans les brands
         $nav = $navAll->reject(function ($nav) {
             return isset($nav['brand']);
         })->map(function ($nav) {
             list($li,$liOptions) = $this->_extractContentOptions($nav['content']);
+            $linkOptions = [];
+
+            // icon
+            if(isset($nav['icon'])){
+                $li = $this->icon($nav['icon']).$li;
+                $linkOptions['escape'] = false;
+            }
 
             // est ce qu'on as un sous menu ?
             if (isset($nav['menu'])) {
@@ -191,7 +212,7 @@ trait Bootstrap3Trait
 
                 // content, link, isActive -> <a>
                 if (isset($nav['link'])) {
-                    $content = [$this->link($li, $nav['link']),$liOptions];
+                    $content = [$this->link($li, $nav['link'],$linkOptions),$liOptions];
                 } else {
                     $content = [$this->tag('p', $li, ['class'=>'navbar-text']),$liOptions];
                 }
@@ -206,8 +227,6 @@ trait Bootstrap3Trait
             ]);
         }
         // nav-right
-
-
         return $this->tag('nav', $navHeader.$nav, $options);
     }
 

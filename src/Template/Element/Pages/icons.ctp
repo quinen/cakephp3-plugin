@@ -68,21 +68,21 @@ $fas = array_diff($fas, array_keys($alias));
 $gis = array_diff($gis, array_values($alias));
 
 $htmlFa = implode("\n", collection($fas)->map(function ($v) {
-    return $this->Html->fa($v, ['size'=>2,'title'=>$v,'spaceAfter'=>true]);
+    return $this->Html->fa($v, ['title'=>$v,'spaceAfter'=>true]);
 })->toArray());
 $htmlBrands = implode("\n", collection($brands)->map(function ($v) {
-    return $this->Html->fa($v, ['size'=>2,'title'=>$v,'spaceAfter'=>true]);
+    return $this->Html->fa($v, ['title'=>$v,'spaceAfter'=>true]);
 })->toArray());
 
 $htmlGi = implode("\n", collection($gis)->map(function ($v) {
-    return $this->Html->gi($v, ['size'=>2,'title'=>$v,'spaceAfter'=>true]);
+    return $this->Html->gi($v, ['title'=>$v,'spaceAfter'=>true]);
 })->toArray());
 
 $htmlAlias = implode("\n", collection($alias)->map(function ($v, $k) {
     return $this->Html->row([
         $k,
-        $this->Html->fa($k,['size'=>2,'title'=>$k]),
-        $this->Html->gi($v,['size'=>2,'title'=>$v]),
+        $this->Html->fa($k,['title'=>$k]),
+        $this->Html->gi($v,['title'=>$v]),
         $v
     ], ['width'=>[4,2,2,4]]);
 })->toArray());
@@ -91,8 +91,8 @@ $htmlIntersect = implode("\n", collection($intersect)->chunk(3)->map(function ($
     return $this->Html->row(
         collection($v)->map(function ($v) {
             return [
-                $this->Html->fa($v, ['size'=>2,'title'=>$v,'spaceAfter'=>true]),
-                $this->Html->gi($v, ['size'=>2,'title'=>$v,'spaceAfter'=>true]),
+                $this->Html->fa($v, ['title'=>$v,'spaceAfter'=>true]),
+                $this->Html->gi($v, ['title'=>$v,'spaceAfter'=>true]),
                 $this->Html->div('text-nowrap', $v)
             ];
         })->unfold()->toArray(),

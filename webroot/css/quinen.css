@@ -1,18 +1,22 @@
-.gi-2x{font-size: 2em;}
-.gi-3x{font-size: 3em;}
-.gi-4x{font-size: 4em;}
-.gi-5x{font-size: 5em;}
+/*
+  condensation maximum des tables
+*/
 
-.table-xcondensed > thead > tr > th,
-.table-xcondensed > tbody > tr > th,
-.table-xcondensed > tfoot > tr > th,
-.table-xcondensed > thead > tr > td,
-.table-xcondensed > tbody > tr > td,
-.table-xcondensed > tfoot > tr > td {
-  padding: 1px;
+.table-xcondensed>thead>tr>th,
+.table-xcondensed>tbody>tr>th,
+.table-xcondensed>tfoot>tr>th,
+.table-xcondensed>thead>tr>td,
+.table-xcondensed>tbody>tr>td,
+.table-xcondensed>tfoot>tr>td {
+    padding: 1px;
 }
 
-div[class^="col"]{
-  padding-left:10px; 
-  padding-right:10px;
+
+/*
+  reduction du gutter de 15 a 10px
+*/
+
+div[class^="col"] {
+    padding-left: 10px;
+    padding-right: 10px;
 }

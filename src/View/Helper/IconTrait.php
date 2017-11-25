@@ -4,7 +4,6 @@ namespace Quinen\View\Helper;
 
 trait IconTrait
 {
-
     public function fa($name, array $options = [])
     {
         $options += [
@@ -30,22 +29,18 @@ trait IconTrait
 
         $options = $this->injectClasses($classes, $options);
 
-        return $this->gi($name, $options);
+        return $this->icon($name, $options);
     }
 
-    public function gi($name, array $options = [])
+    public function gi($name, array $options = []) 
     {
+        return $this->icon($name, $options);
+    }
+
+    public function icon($name,array $options = []){
         $options += [
-            'size'      => 1,
             'spaceAfter'=> true
         ];
-
-        // size, included in the custom css
-        if ($options['size']>1) {
-            $size = "gi-".$options['size']."x";
-            $options = $this->injectClasses($size, $options);
-        }
-        unset($options['size']);
 
         // generate a space after the icon automatically
         $spaceAfter = "";
@@ -53,7 +48,6 @@ trait IconTrait
             $spaceAfter = " ";
         }
         unset($options['spaceAfter']);
-
         return parent::icon($name, $options).$spaceAfter;
     }
 
