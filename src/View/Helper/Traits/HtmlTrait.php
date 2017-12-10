@@ -1,6 +1,6 @@
 <?php
 
-namespace Quinen\View\Helper;
+namespace Quinen\View\Helper\Traits;
 
 use Cake\Utility\Hash;
 

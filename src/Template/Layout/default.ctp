@@ -8,10 +8,8 @@
     </title>
     <?= $this->Html->meta('icon') ?>
     <?php
-
     echo $this->element('Quinen.Layout/meta_css');
     echo $this->element('Quinen.Layout/meta_js');
-
     ?>
     <?= $this->fetch('meta') ?>
     <?= $this->fetch('css') ?>

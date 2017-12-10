@@ -1,11 +1,4 @@
-<?php
-/* @var $this \Cake\View\View */
-$this->extend('/Layout/dashboard');
-$this->start('tb_actions');
-?>
-    <li><?= $this->Html->link(__('New Qnn Grp Group'), ['action' => 'add']); ?></li>
-<?php $this->end(); ?>
-<?php $this->assign('tb_sidebar', '<ul class="nav nav-sidebar">' . $this->fetch('tb_actions') . '</ul>'); ?>
+
 
 <table class="table table-striped" cellpadding="0" cellspacing="0">
     <thead>

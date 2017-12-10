@@ -1,5 +1,5 @@
 <?php
-
+/* @var $this \Cake\View\View */
 $menu = [
     [
         'brand' => "Quinen.net",
@@ -8,7 +8,20 @@ $menu = [
 
     ],
     [
-        'content' => 'Pages',
+        'content' => "Utilisateurs",
+        'menu' => [
+            [
+                'content' => "Groupes",
+                'link' => [
+                    'plugin' => "Quinen",
+                    'controller' => "QnnGrpGroups",
+                ]
+
+            ]
+        ] 
+    ],
+    [
+        'content' => 'Tests',
         'link' => "quinen/pages",
         'icon' => "file"
     ]

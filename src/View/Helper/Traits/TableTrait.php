@@ -1,11 +1,9 @@
 <?php
 
-namespace Quinen\View\Helper;
+namespace Quinen\View\Helper\Traits;
 
 trait TableTrait
 {
-
-
     public function _injectTableClasses($classes, $options)
     {
         // convert isBordered by table-bordered class
